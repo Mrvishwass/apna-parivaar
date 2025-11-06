@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apna Parivaar – Digital Family Manager</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 1600px; margin: 0 auto; background: white; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header h1 { font-size: 2em; font-weight: 700; }
+        .header-stats { display: flex; gap: 20px; }
+        .stat-box { background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 20px; text-align: center; }
+        .stat-number { font-size: 24px; font-weight: 700; }
+        .stat-label { font-size: 12px; opacity: 0.9; }
+        .tabs { display: flex; gap: 12px; }
+        .tab { padding: 12px 24px; background: rgba(255,255,255,0.2); border: none; border-radius: 10px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .tab:hover { background: rgba(255,255,255,0.3); }
+        .tab.active { background: white; color: #667eea; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .link-action { background: rgba(255,255,255,0.2); color: #fff; border: 0; padding: 8px 14px; border-radius: 999px; font-weight: 700; cursor: pointer; }
+        .link-action:hover { background: rgba(255,255,255,0.3); }
+        .page { display: none; }
+        .page.active { display: block; }
+        .layout { display: grid; grid-template-columns: 350px 1fr; min-height: calc(100vh - 140px); }
+        .sidebar { background: #f8f9fa; padding: 24px; border-right: 2px solid #e0e0e0; overflow-y: auto; max-height: calc(100vh - 140px); }
+        .content { padding: 24px; overflow-y: auto; max-height: calc(100vh - 140px); }
+        .section-title { font-size: 1.3em; color: #667eea; font-weight: 700; margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
+        .spouse-form-group { margin-top: 16px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #333; }
+        input, select, textarea { width: 100%; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; transition: border 0.3s; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
+        textarea { resize: vertical; min-height: 60px; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 10px; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
+        .btn-secondary { background: #6c757d; color: white; margin-bottom: 10px; }
+        .btn-secondary:hover { background: #5a6268; }
+        .divider { margin: 24px 0; border-top: 2px solid #e0e0e0; }
+        .member-card { background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 16px; transition: all 0.3s; }
+        .member-card:hover { border-color: #667eea; box-shadow: 0 8px 20px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .member-name { font-size: 1.2em; font-weight: 700; color: #667eea; margin-bottom: 10px; }
+        .member-info { font-size: 14px; color: #666; line-height: 1.6; }
+        .gender-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .gender-male { background: #e3f2fd; color: #1976d2; }
+        .gender-female { background: #fce4ec; color: #c2185b; }
+        .gender-other { background: #f3e5f5; color: #7b1fa2; }
+        .relations { background: #f8f9fa; padding: 10px; border-radius: 8px; margin: 10px 0; font-size: 13px; }
+        .btn-group { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-small { flex: 1; padding: 8px; font-size: 13px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn-view { background: #667eea; color: white; }
+        .btn-edit { background: #28a745; color: white; }
+        .btn-delete { background: #dc3545; color: white; }
+        .btn-small:hover { transform: translateY(-2px); }
+        .modal-btn-save { background: #28a745; color: white; }
+        .modal-btn-save:hover { background: #218838; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4); }
+        .toast { position: fixed; bottom: 24px; right: 24px; background: white; border-left: 4px solid #28a745; border-radius: 8px; padding: 16px 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: none; z-index: 2000; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast.show { display: block; }
+        .toast.error { border-left-color: #dc3545; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+        .empty-icon { font-size: 64px; margin-bottom: 16px; }
+        .tree-container { padding: 60px; position: relative; min-height: 600px; }
+        .generation-layer { margin-bottom: 150px; position: relative; display: flex; justify-content: center; }
+        .generation-title { font-size: 18px; font-weight: 700; color: #667eea; margin-bottom: 40px; background: rgba(102, 126, 234, 0.1); padding: 12px 24px; border-radius: 20px; display: inline-block; text-align: center; width: 100%; }
+        .family-group { display: inline-flex; margin: 0 60px; position: relative; align-items: flex-start; }
+        .couple-unit { display: flex; gap: 10px; align-items: center; position: relative; }
+        .single-unit { position: relative; }
+        .tree-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        .tree-member-card { background: white; border: 3px solid #e0e0e0; border-radius: 16px; padding: 20px; min-width: 200px; max-width: 250px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; z-index: 1; text-align: center; }
+        .tree-member-card:hover { border-color: #667eea; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3); transform: translateY(-5px); }
+        .tree-member-card.selected { border-color: #667eea; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); }
+        .tree-member-photo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea; margin: 0 auto 10px; display: block; }
+        .tree-member-name { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 10px; }
+        .tree-member-info { font-size: 13px; color: #666; margin-bottom: 8px; }
+        .photo-preview { margin-top: 10px; text-align: center; }
+        .photo-preview img { max-width: 100px; max-height: 100px; border-radius: 8px; border: 2px solid #667eea; margin-top: 8px; }
+        .member-photo { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #667eea; float: left; margin-right: 15px; margin-bottom: 10px; }
+        input[type="file"] { padding: 8px; }
+        .info-panel { position: fixed; right: -400px; top: 140px; width: 380px; height: calc(100vh - 160px); background: white; border-left: 3px solid #667eea; box-shadow: -4px 0 20px rgba(0,0,0,0.2); transition: right 0.3s; z-index: 100; overflow-y: auto; }
+        .info-panel.show { right: 0; }
+        .info-panel-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+        .info-panel-title { font-size: 20px; font-weight: 700; }
+        .info-panel-close { background: rgba(255,255,255,0.2); border: none; color: white; font-size: 28px; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; transition: all 0.3s; }
+        .info-panel-close:hover { background: rgba(255,255,255,0.3); transform: rotate(90deg); }
+        .info-section { margin: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; margin-bottom: 15px; }
+        .info-section-title { font-size: 16px; font-weight: 700; color: #667eea; margin-bottom: 15px; }
+        .relation-tag { display: inline-block; background: white; padding: 6px 12px; border-radius: 8px; margin: 4px; cursor: pointer; transition: all 0.3s; font-size: 13px; border: 2px solid #e0e0e0; }
+        .relation-tag:hover { background: #667eea; color: white; border-color: #667eea; transform: translateY(-2px); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .stat-card { background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 24px; text-align: center; }
+        .stat-card-number { font-size: 48px; font-weight: 700; color: #667eea; margin-bottom: 10px; }
+        .stat-card-label { font-size: 16px; color: #666; font-weight: 600; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalSlideIn 0.3s ease; }
+        @keyframes modalSlideIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #e0e0e0; }
+        .modal-title { font-size: 1.5em; font-weight: 700; color: #333; }
+        .modal-close { background: none; border: none; font-size: 32px; cursor: pointer; color: #999; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s; }
+        .modal-close:hover { background: #f0f0f0; color: #dc3545; transform: rotate(90deg); }
+        .modal-body { margin-bottom: 24px; }
+        .warning-box { background: #fff3cd; border: 2px solid #ffc107; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+        .warning-box h4 { color: #856404; margin-bottom: 12px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .warning-list { color: #856404; font-size: 14px; line-height: 1.8; margin-left: 24px; }
+        .danger-box { background: #f8d7da; border: 2px solid #dc3545; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+        .danger-box h4 { color: #721c24; margin-bottom: 12px; font-size: 16px; font-weight: 700; }
+        .member-preview { background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+        .member-preview-name { font-size: 18px; font-weight: 700; color: #667eea; margin-bottom: 12px; }
+        .member-preview-info { font-size: 14px; color: #666; line-height: 1.6; }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+        .modal-btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .modal-btn-cancel { background: #6c757d; color: white; }
+        .modal-btn-cancel:hover { background: #5a6268; }
+        .modal-btn-delete { background: #dc3545; color: white; }
+        .modal-btn-delete:hover { background: #c82333; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4); }
+        /* Auth overlays */
+        .auth-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 2000; background: linear-gradient(135deg, rgba(102,126,234,0.95) 0%, rgba(118,75,162,0.95) 100%); padding: 20px; }
+        .auth-overlay.show { display: flex; }
+        .auth-card { width: 100%; max-width: 520px; background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .auth-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .auth-title { font-size: 1.4em; font-weight: 700; }
+        .auth-body { padding: 24px; }
+        .auth-toggle { display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; }
+        .auth-toggle button { padding: 10px 16px; border: 0; border-radius: 999px; font-weight: 700; cursor: pointer; background: #eee; color: #555; }
+        .auth-toggle button.active { background: #667eea; color: #fff; }
+        .auth-actions { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-top: 8px; }
+        .link-btn { background: transparent; border: none; color: #667eea; font-weight: 700; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-title">🔐 Login</div>
+                <button class="modal-close" onclick="closeAuth()">×</button>
+            </div>
+            <div class="auth-body">
+                <div class="auth-toggle">
+                    <button id="familyLoginTab" class="active" onclick="setLoginMode('family')">Family Login</button>
+                    <button id="adminLoginTab" onclick="setLoginMode('super')">Super Admin Login</button>
+                </div>
+                <div id="familyLoginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Gmail ID</label>
+                        <input type="email" id="loginEmail" placeholder="example@gmail.com" title="Enter your gmail id">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" placeholder="Your password" title="Enter your password">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginFamilyId">Family ID</label>
+                        <input type="text" id="loginFamilyId" placeholder="e.g. SMITH_FAMILY_01" title="Enter your family id">
+                    </div>
+                    <button class="btn btn-primary" onclick="submitFamilyLogin()">Login</button>
+                    <div class="auth-actions">
+                        <span>New Family Admin?</span>
+                        <button class="link-btn" onclick="openSignup()">Create account</button>
+                    </div>
+                </div>
+                <div id="superLoginForm" style="display:none;">
+                    <div class="form-group">
+                        <label for="superEmail">Gmail ID</label>
+                        <input type="email" id="superEmail" placeholder="admin@gmail.com" title="Enter gmail id">
+                    </div>
+                    <div class="form-group">
+                        <label for="superPassword">Password</label>
+                        <input type="password" id="superPassword" placeholder="Your password" title="Enter password">
+                    </div>
+                    <div class="form-group">
+                        <label for="superEmployeeId">Employee ID</label>
+                        <input type="text" id="superEmployeeId" placeholder="e.g. EMP-00123" title="Enter employee id">
+                    </div>
+                    <button class="btn btn-primary" onclick="submitSuperLogin()">Login as Super Admin</button>
+                    <div class="auth-actions">
+                        <span>Need Family Login?</span>
+                        <button class="link-btn" onclick="setLoginMode('family')">Switch to Family</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="signupOverlay" class="auth-overlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-title">📝 Family Admin Signup</div>
+                <button class="modal-close" onclick="closeSignup()">×</button>
+            </div>
+            <div class="auth-body">
+                <div class="form-group">
+                    <label for="signupName">Full Name</label>
+                    <input type="text" id="signupName" placeholder="Your name" title="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Gmail ID</label>
+                    <input type="email" id="signupEmail" placeholder="example@gmail.com" title="Enter your gmail id">
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" placeholder="Create a password" title="Create a password">
+                </div>
+                <div class="form-group">
+                    <label for="signupFamilyName">Family Name</label>
+                    <input type="text" id="signupFamilyName" placeholder="e.g. Smith" title="Enter your family name">
+                </div>
+                <button class="btn btn-primary" onclick="submitFamilySignup()">Create Family Admin</button>
+                <div class="auth-actions" style="justify-content:flex-end;">
+                    <button class="link-btn" onclick="backToLogin()">Back to Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="appContainer">
+        <div class="header">
+            <div class="header-top">
+                <h1>👨‍👩‍👧‍👦 Apna Parivaar</h1>
+                <div class="header-stats" id="headerStats">
+                    <div class="stat-box">
+                        <div class="stat-number" id="totalMembers">7</div>
+                        <div class="stat-label">Members</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="totalGenerations">3</div>
+                        <div class="stat-label">Generations</div>
+                    </div>
+                </div>
+                <div class="header-actions" id="headerActions">
+                    <button class="link-action" onclick="openProfile()">Profile</button>
+                    <button class="link-action" onclick="logout()">Logout</button>
+                </div>
+            </div>
+            <div class="tabs">
+                <button class="tab active" id="tabManage" onclick="switchTab('manage')">📋 Manage</button>
+                <button class="tab" id="tabTree" onclick="switchTab('tree')">🌳 Tree View</button>
+                <button class="tab" id="tabStats" onclick="switchTab('stats')">📊 Statistics</button>
+                <button class="tab" id="tabProfile" onclick="switchTab('profile')">👤 Profile</button>
+                <button class="tab" id="tabPayments" style="display:none;" onclick="switchTab('payments')">💳 Payments</button>
+                <button class="tab" id="tabFamilies" style="display:none;" onclick="switchTab('families')">🏢 Families</button>
+            </div>
+        </div>
+
+        <div id="managePage" class="page active">
+            <div class="layout">
+                <div class="sidebar">
+                    <div class="section-title">➕ Add Member</div>
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" placeholder="Full name" title="Enter full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="dob">Date of Birth</label>
+                        <input type="date" id="dob" title="Select date of birth">
+                    </div>
+                    <div class="form-group">
+                        <label for="deathDate">Death Date (optional)</label>
+                        <input type="date" id="deathDate" title="Select death date (optional)">
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" title="Select gender">
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="occupation">Occupation</label>
+                        <input type="text" id="occupation" placeholder="Enter occupation" title="Enter occupation">
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" id="location" placeholder="Enter location" title="Enter location">
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes" placeholder="Enter notes" title="Enter notes"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="memberPhoto">Photo</label>
+                        <input type="file" id="memberPhoto" accept="image/*" title="Upload member photo">
+                        <div id="photoPreview" class="photo-preview"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="addMember()">Add Member</button>
+
+                    <div class="divider"></div>
+
+                    <div class="section-title">🔗 Add Relationships</div>
+                    <div class="form-group">
+                        <label for="parentSelect">Parent</label>
+                        <select id="parentSelect" title="Select parent"><option value="">Select parent</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="childSelect">Child</label>
+                        <select id="childSelect" title="Select child"><option value="">Select child</option></select>
+                    </div>
+                    <button class="btn btn-secondary" onclick="addParentChild()">Link Parent-Child</button>
+
+                    <div class="form-group spouse-form-group">
+                        <label for="spouse1Select">Spouse 1</label>
+                        <select id="spouse1Select" title="Select first spouse"><option value="">Select person</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="spouse2Select">Spouse 2</label>
+                        <select id="spouse2Select" title="Select second spouse"><option value="">Select person</option></select>
+                    </div>
+                    <button class="btn btn-secondary" onclick="addSpouse()">Link Spouses</button>
+                </div>
+
+                <div class="content">
+                    <div id="membersList"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="treePage" class="page">
+            <div class="content">
+                <div id="treeView"></div>
+                <div id="infoPanel" class="info-panel">
+                    <div class="info-panel-header">
+                        <div class="info-panel-title" id="infoPanelTitle">Member Info</div>
+                        <button class="info-panel-close" onclick="closeInfoPanel()">×</button>
+                    </div>
+                    <div id="infoPanelContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="statsPage" class="page">
+            <div class="content">
+                <div id="statsView"></div>
+            </div>
+        </div>
+        
+        <div id="profilePage" class="page">
+            <div class="content">
+                <div id="profileView"></div>
+            </div>
+        </div>
+
+        <div id="paymentsPage" class="page">
+            <div class="content">
+                <div class="section-title">💳 Choose Your Plan</div>
+                <div class="stats-grid">
+                    <div class="stat-card" style="text-align:left; cursor:pointer;" onclick="selectPlan('YEARLY')">
+                        <div class="stat-card-number" style="color:#667eea;">₹500</div>
+                        <div class="stat-card-label">per year</div>
+                        <div style="font-size:13px; color:#666; margin-top:8px;">Best value • Save 17%</div>
+                    </div>
+                    <div class="stat-card" style="text-align:left; cursor:pointer;" onclick="selectPlan('MONTHLY')">
+                        <div class="stat-card-number" style="color:#667eea;">₹50</div>
+                        <div class="stat-card-label">per month</div>
+                        <div style="font-size:13px; color:#666; margin-top:8px;">Flexible monthly billing</div>
+                    </div>
+                </div>
+                <div class="member-card" style="margin-top:20px;">
+                    <div class="member-name">Selected Plan</div>
+                    <div class="member-info" id="selectedPlanSummary">None selected</div>
+                    <div class="btn-group" style="margin-top:16px;">
+                        <button class="btn-small btn-view" onclick="openPaymentGateway()">Proceed to Payment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="familiesPage" class="page">
+            <div class="content">
+                <div class="section-title">🏢 Registered Families</div>
+                <div id="familiesView"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Mock Payment Gateway</div>
+                <button class="modal-close" onclick="closePaymentModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="member-card">
+                    <div class="member-name">Payment Details</div>
+                    <div class="member-info">
+                        <div><strong>Plan:</strong> <span id="gwPlanName">-</span></div>
+                        <div><strong>Amount:</strong> ₹<span id="gwPlanAmount">-</span></div>
+                        <div><strong>Family Admin Email:</strong> <span id="gwEmail">-</span></div>
+                        <div style="margin-top:8px; font-size:13px; color:#666;">A payment request link will be emailed to this address.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closePaymentModal()">Cancel</button>
+                <button class="modal-btn modal-btn-save" onclick="window.open('https://www-towrco-in.filesusr.com/108a4b61-64e0-4089-bdc9-c8b1de20cbc0', '_blank')">
+                    📧 Send Payment Request
+                  </button>   
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="editModalTitle">Edit Member</div>
+                <button class="modal-close" onclick="closeEditModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="editName">Name *</label>
+                    <input type="text" id="editName" placeholder="Full name" title="Enter full name">
+                </div>
+                <div class="form-group">
+                    <label for="editBirthYear">Birth Year</label>
+                    <input type="number" id="editBirthYear" placeholder="YYYY" title="Enter birth year">
+                </div>
+                <div class="form-group">
+                    <label for="editGender">Gender</label>
+                    <select id="editGender" title="Select gender">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editOccupation">Occupation</label>
+                    <input type="text" id="editOccupation" placeholder="Enter occupation" title="Enter occupation">
+                </div>
+                <div class="form-group">
+                    <label for="editLocation">Location</label>
+                    <input type="text" id="editLocation" placeholder="Enter location" title="Enter location">
+                </div>
+                <div class="form-group">
+                    <label for="editNotes">Notes</label>
+                    <textarea id="editNotes" placeholder="Enter notes" title="Enter notes"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editPhoto">Photo</label>
+                    <input type="file" id="editPhoto" accept="image/*" title="Upload member photo">
+                    <div id="editPhotoPreview" class="photo-preview"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button class="modal-btn modal-btn-save" id="saveEditBtn">💾 Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="deleteModalTitle">Delete Member?</div>
+                <button class="modal-close" onclick="closeDeleteModal()">×</button>
+            </div>
+            <div class="modal-body" id="deleteModalBody"></div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="modal-btn modal-btn-delete" id="confirmDeleteBtn">🗑 Remove from Family</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App state for auth and families registry (frontend-only)
+        let appState = {
+            currentUser: null, // { role: 'family'|'super', email, name?, employeeId?, familyId? }
+            families: [] // { familyId, name, headName }
+        };
+
+        let familyData = {
+            members: [
+                { id: 'gp1', name: 'Robert Smith', birthYear: '1945', gender: 'male', occupation: 'Retired Teacher', location: 'Boston, MA', notes: 'Patriarch', photo: null },
+                { id: 'gp2', name: 'Mary Smith', birthYear: '1947', gender: 'female', occupation: 'Retired Nurse', location: 'Boston, MA', notes: 'Matriarch', photo: null },
+                { id: 'p1', name: 'John Smith', birthYear: '1970', gender: 'male', occupation: 'Software Engineer', location: 'San Francisco, CA', notes: 'Tech worker', photo: null },
+                { id: 'p2', name: 'Sarah Smith', birthYear: '1972', gender: 'female', occupation: 'Doctor', location: 'San Francisco, CA', notes: 'Pediatrician', photo: null },
+                { id: 'c1', name: 'Emily Smith', birthYear: '1995', gender: 'female', occupation: 'Designer', location: 'New York, NY', notes: 'Graphic designer', photo: null },
+                { id: 'c2', name: 'Michael Smith', birthYear: '1998', gender: 'male', occupation: 'Student', location: 'Boston, MA', notes: 'Engineering student', photo: null },
+                { id: 'aunt1', name: 'Linda Johnson', birthYear: '1975', gender: 'female', occupation: 'Teacher', location: 'Chicago, IL', notes: 'High school teacher', photo: null }
+            ],
+            relationships: [
+                { parentId: 'gp1', childId: 'p1' }, { parentId: 'gp2', childId: 'p1' },
+                { parentId: 'gp1', childId: 'aunt1' }, { parentId: 'gp2', childId: 'aunt1' },
+                { parentId: 'p1', childId: 'c1' }, { parentId: 'p2', childId: 'c1' },
+                { parentId: 'p1', childId: 'c2' }, { parentId: 'p2', childId: 'c2' }
+            ],
+            spouses: [
+                { spouse1: 'gp1', spouse2: 'gp2' },
+                { spouse1: 'p1', spouse2: 'p2' }
+            ]
+        };
+
+        let selectedTreeMember = null;
+        
+        function ensureFamilyInRegistry(familyId, fallbackName = null, fallbackHead = null) {
+            if (!familyId) return;
+            if (!appState.families.find(f => f.familyId === familyId)) {
+                appState.families.push({ familyId, name: fallbackName || familyId, headName: fallbackHead || 'Unknown' });
+            }
+        }
+
+        function getMembers() { return familyData.members; }
+        function getRelationships() { return familyData.relationships; }
+        function getSpouses() { return familyData.spouses; }
+
+        function getChildren(id) {
+            return familyData.members.filter(m => familyData.relationships.some(r => r.parentId === id && r.childId === m.id));
+        }
+
+        function getParents(id) {
+            return familyData.members.filter(m => familyData.relationships.some(r => r.childId === id && r.parentId === m.id));
+        }
+
+        function getSpouse(id) {
+            const rel = familyData.spouses.find(s => s.spouse1 === id || s.spouse2 === id);
+            if (!rel) return null;
+            const spouseId = rel.spouse1 === id ? rel.spouse2 : rel.spouse1;
+            return familyData.members.find(m => m.id === spouseId);
+        }
+
+        function getSiblings(id) {
+            const parents = getParents(id);
+            const sibs = new Set();
+            parents.forEach(p => {
+                getChildren(p.id).forEach(c => {
+                    if (c.id !== id) sibs.add(c);
+                });
+            });
+            return Array.from(sibs);
+        }
+
+        function getGrandparents(id) {
+            const gps = new Set();
+            getParents(id).forEach(p => {
+                getParents(p.id).forEach(gp => gps.add(gp));
+            });
+            return Array.from(gps);
+        }
+
+        function getGrandchildren(id) {
+            const gcs = new Set();
+            getChildren(id).forEach(c => {
+                getChildren(c.id).forEach(gc => gcs.add(gc));
+            });
+            return Array.from(gcs);
+        }
+
+        function getAuntsUncles(id) {
+            const aus = new Set();
+            getParents(id).forEach(p => {
+                getSiblings(p.id).forEach(s => aus.add(s));
+            });
+            return Array.from(aus);
+        }
+
+        function getCousins(id) {
+            const cousins = new Set();
+            getAuntsUncles(id).forEach(au => {
+                getChildren(au.id).forEach(c => cousins.add(c));
+            });
+            return Array.from(cousins);
+        }
+
+        function getNiecesNephews(id) {
+            const nns = new Set();
+            getSiblings(id).forEach(s => {
+                getChildren(s.id).forEach(c => nns.add(c));
+            });
+            return Array.from(nns);
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast show ' + (type === 'error' ? 'error' : '');
+            setTimeout(() => toast.className = 'toast', 3000);
+        }
+
+        function convertImageToBase64(file, callback) {
+            if (!file) {
+                callback(null);
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                callback(e.target.result);
+            };
+            reader.onerror = function() {
+                showToast('Error reading photo', 'error');
+                callback(null);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function addMember() {
+            const name = document.getElementById('name').value.trim();
+            if (!name) { 
+                showToast('Please enter a name', 'error'); 
+                return; 
+            }
+            
+            const photoInput = document.getElementById('memberPhoto');
+            const photoFile = photoInput.files[0];
+            const dob = (document.getElementById('dob').value || '').trim();
+            const deathDate = (document.getElementById('deathDate').value || '').trim();
+            
+            // Convert photo to base64 if provided
+            if (photoFile) {
+                convertImageToBase64(photoFile, function(photoData) {
+                    const member = {
+                        id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        name,
+                        dob: dob || null,
+                        deathDate: deathDate || null,
+                        gender: document.getElementById('gender').value,
+                        occupation: document.getElementById('occupation').value.trim(),
+                        location: document.getElementById('location').value.trim(),
+                        notes: document.getElementById('notes').value.trim(),
+                        photo: photoData
+                    };
+                    
+                    familyData.members.push(member);
+                    if (window.persistMemberAdd) { window.persistMemberAdd(member); }
+                    clearMemberForm();
+                    showToast('Member added successfully!');
+                    updateAll();
+                });
+            } else {
+                // No photo provided
+                const member = {
+                    id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    name,
+                    dob: dob || null,
+                    deathDate: deathDate || null,
+                    gender: document.getElementById('gender').value,
+                    occupation: document.getElementById('occupation').value.trim(),
+                    location: document.getElementById('location').value.trim(),
+                    notes: document.getElementById('notes').value.trim(),
+                    photo: null
+                };
+                
+                familyData.members.push(member);
+                if (window.persistMemberAdd) { window.persistMemberAdd(member); }
+                clearMemberForm();
+                showToast('Member added successfully!');
+                updateAll();
+            }
+        }
+
+        function clearMemberForm() {
+            document.getElementById('name').value = '';
+            const dobInput = document.getElementById('dob'); if (dobInput) dobInput.value = '';
+            const dDate = document.getElementById('deathDate'); if (dDate) dDate.value = '';
+            document.getElementById('gender').value = 'male';
+            document.getElementById('occupation').value = '';
+            document.getElementById('location').value = '';
+            document.getElementById('notes').value = '';
+            document.getElementById('memberPhoto').value = '';
+            document.getElementById('photoPreview').innerHTML = '';
+        }
+
+        function addParentChild() {
+            const parentId = document.getElementById('parentSelect').value;
+            const childId = document.getElementById('childSelect').value;
+            if (!parentId || !childId) { 
+                showToast('Please select both parent and child', 'error'); 
+                return; 
+            }
+            if (parentId === childId) { 
+                showToast('Parent and child cannot be the same', 'error'); 
+                return; 
+            }
+            
+            // Check if relationship already exists
+            if (familyData.relationships.some(r => r.parentId === parentId && r.childId === childId)) {
+                showToast('This relationship already exists', 'error');
+                return;
+            }
+            
+            // Check for circular relationship (prevent making someone a parent of their own ancestor)
+            const childParents = getParents(childId);
+            if (childParents.some(p => p.id === parentId)) {
+                showToast('This relationship already exists', 'error');
+                return;
+            }
+            
+            // Check if child is an ancestor of parent (prevent circular reference)
+            function isAncestor(ancestorId, descendantId) {
+                const parents = getParents(descendantId);
+                if (parents.some(p => p.id === ancestorId)) return true;
+                for (const parent of parents) {
+                    if (isAncestor(ancestorId, parent.id)) return true;
+                }
+                return false;
+            }
+            
+            if (isAncestor(childId, parentId)) {
+                showToast('Cannot create circular relationship', 'error');
+                return;
+            }
+            
+            familyData.relationships.push({ parentId, childId });
+            if (window.persistRelationshipAdd) { window.persistRelationshipAdd({ parentId, childId }); }
+            const spouse = getSpouse(parentId);
+            if (spouse && !familyData.relationships.some(r => r.parentId === spouse.id && r.childId === childId)) {
+                familyData.relationships.push({ parentId: spouse.id, childId });
+            }
+            showToast('Relationship added!');
+            updateAll();
+        }
+
+        function addSpouse() {
+            const spouse1 = document.getElementById('spouse1Select').value;
+            const spouse2 = document.getElementById('spouse2Select').value;
+            if (!spouse1 || !spouse2) { 
+                showToast('Please select both spouses', 'error'); 
+                return; 
+            }
+            if (spouse1 === spouse2) { 
+                showToast('Cannot marry the same person', 'error'); 
+                return; 
+            }
+            
+            // Check if relationship already exists
+            if (familyData.spouses.some(s => 
+                (s.spouse1 === spouse1 && s.spouse2 === spouse2) || 
+                (s.spouse1 === spouse2 && s.spouse2 === spouse1)
+            )) {
+                showToast('This spouse relationship already exists', 'error');
+                return;
+            }
+            
+            familyData.spouses.push({ spouse1, spouse2 });
+            if (window.persistSpouseAdd) { window.persistSpouseAdd({ spouse1, spouse2 }); }
+            showToast('Spouse relationship added!');
+            updateAll();
+        }
+
+        function deleteMember(id) {
+            const member = familyData.members.find(m => m.id === id);
+            if (!member) return;
+
+            const children = getChildren(id);
+            const parents = getParents(id);
+            const spouse = getSpouse(id);
+            const siblings = getSiblings(id);
+            const isParent = children.length > 0;
+            const isChild = parents.length > 0;
+            const isSpouse = spouse !== null;
+
+            let warningHTML = `
+                <div class="member-preview">
+                    <div class="member-preview-name">${member.name}</div>
+                    <div class="member-preview-info">
+                        ${member.birthYear ? `📅 Born: ${member.birthYear}<br>` : ''}
+                        ${member.gender ? `👤 Gender: ${member.gender}<br>` : ''}
+                        ${member.occupation ? `💼 ${member.occupation}<br>` : ''}
+                        ${member.location ? `📍 ${member.location}` : ''}
+                    </div>
+                </div>
+            `;
+
+            if (isParent || isChild || isSpouse) {
+                warningHTML += `<div class="warning-box">
+                    <h4>⚠ Removing from family will affect:</h4>
+                    <ul class="warning-list">
+                        ${isSpouse ? `<li><strong>${member.name}</strong> will be unmarried from <strong>${spouse.name}</strong></li>` : ''}
+                        ${isParent ? `<li>${children.length} ${children.length === 1 ? 'child' : 'children'} will lose <strong>${member.name}</strong> as a parent: <strong>${children.map(c => c.name).join(', ')}</strong></li>` : ''}
+                        ${isChild && parents.length > 0 ? `<li><strong>${member.name}</strong> will be removed as a child of <strong>${parents.map(p => p.name).join(' & ')}</strong></li>` : ''}
+                        ${siblings.length > 0 ? `<li>Will no longer be sibling to: <strong>${siblings.map(s => s.name).join(', ')}</strong></li>` : ''}
+                    </ul>
+                </div>`;
+            }
+
+            warningHTML += `<div class="danger-box">
+                <h4>🗑 This member will be permanently removed from the family tree!</h4>
+                <p style="color: #721c24; font-size: 14px; margin-top: 8px;">This action cannot be undone. All data and relationships will be deleted.</p>
+            </div>`;
+
+            showDeleteModal(id, member.name, warningHTML);
+        }
+
+        function showDeleteModal(id, name, warningHTML) {
+            const modal = document.getElementById('deleteModal');
+            document.getElementById('deleteModalTitle').textContent = `Remove ${name} from Family?`;
+            document.getElementById('deleteModalBody').innerHTML = warningHTML;
+            
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            confirmBtn.onclick = () => {
+                performDelete(id);
+                closeDeleteModal();
+            };
+            
+            modal.classList.add('show');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+
+        let editingMemberId = null;
+
+        function editMember(id) {
+            const member = familyData.members.find(m => m.id === id);
+            if (!member) return;
+
+            editingMemberId = id;
+            
+            // Populate form with member data
+            document.getElementById('editName').value = member.name || '';
+            document.getElementById('editBirthYear').value = member.birthYear || '';
+            document.getElementById('editGender').value = member.gender || 'male';
+            document.getElementById('editOccupation').value = member.occupation || '';
+            document.getElementById('editLocation').value = member.location || '';
+            document.getElementById('editNotes').value = member.notes || '';
+            document.getElementById('editPhoto').value = '';
+            
+            // Show current photo if exists
+            const photoPreview = document.getElementById('editPhotoPreview');
+            if (member.photo) {
+                photoPreview.innerHTML = `<img src="${member.photo}" alt="Current photo"><div style="margin-top: 8px; font-size: 12px; color: #666;">Current photo (upload new to replace)</div>`;
+            } else {
+                photoPreview.innerHTML = '';
+            }
+
+            // Show modal
+            document.getElementById('editModal').classList.add('show');
+
+            // Setup save button
+            document.getElementById('saveEditBtn').onclick = function() {
+                saveEditedMember();
+            };
+
+            // Setup photo preview for edit
+            const editPhotoInput = document.getElementById('editPhoto');
+            editPhotoInput.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                        showToast('Photo size must be less than 5MB', 'error');
+                        editPhotoInput.value = '';
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        photoPreview.innerHTML = `<img src="${e.target.result}" alt="Preview"><div style="margin-top: 8px; font-size: 12px; color: #666;">New photo preview</div>`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+            editingMemberId = null;
+            document.getElementById('editPhoto').value = '';
+            document.getElementById('editPhotoPreview').innerHTML = '';
+        }
+
+        function saveEditedMember() {
+            if (!editingMemberId) return;
+
+            const name = document.getElementById('editName').value.trim();
+            if (!name) {
+                showToast('Please enter a name', 'error');
+                return;
+            }
+
+            const member = familyData.members.find(m => m.id === editingMemberId);
+            if (!member) {
+                showToast('Member not found', 'error');
+                closeEditModal();
+                return;
+            }
+
+            const editPhotoInput = document.getElementById('editPhoto');
+            const photoFile = editPhotoInput.files[0];
+
+            // Update member data
+            if (photoFile) {
+                // New photo uploaded
+                convertImageToBase64(photoFile, function(photoData) {
+                    member.name = name;
+                    member.birthYear = document.getElementById('editBirthYear').value;
+                    member.gender = document.getElementById('editGender').value;
+                    member.occupation = document.getElementById('editOccupation').value.trim();
+                    member.location = document.getElementById('editLocation').value.trim();
+                    member.notes = document.getElementById('editNotes').value.trim();
+                    member.photo = photoData;
+
+                    showToast('Member updated successfully!');
+                    closeEditModal();
+                    updateAll();
+                });
+            } else {
+                // No new photo, keep existing or set to null
+                member.name = name;
+                member.birthYear = document.getElementById('editBirthYear').value;
+                member.gender = document.getElementById('editGender').value;
+                member.occupation = document.getElementById('editOccupation').value.trim();
+                member.location = document.getElementById('editLocation').value.trim();
+                member.notes = document.getElementById('editNotes').value.trim();
+                // Keep existing photo if it exists, otherwise keep null
+
+                if (window.persistMemberUpdate) { window.persistMemberUpdate(member); }
+                showToast('Member updated successfully!');
+                closeEditModal();
+                updateAll();
+            }
+        }
+
+        function performDelete(id) {
+            const member = familyData.members.find(m => m.id === id);
+            const memberName = member ? member.name : 'Member';
+            
+            familyData.members = familyData.members.filter(m => m.id !== id);
+            if (window.persistMemberDelete) { window.persistMemberDelete(id); }
+            familyData.relationships = familyData.relationships.filter(r => {
+                return r.parentId !== id && r.childId !== id;
+            });
+            familyData.spouses = familyData.spouses.filter(s => {
+                return s.spouse1 !== id && s.spouse2 !== id;
+            });
+            
+            if (selectedTreeMember === id) {
+                selectedTreeMember = null;
+                const infoPanel = document.getElementById('infoPanel');
+                if (infoPanel) {
+                    infoPanel.classList.remove('show');
+                }
+            }
+            
+            showToast(`${memberName} has been removed from the family tree`);
+            updateAll();
+        }
+
+        function renderMembers() {
+            const list = document.getElementById('membersList');
+            const members = familyData.members;
+            
+            if (members.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p>No family members yet. Add your first member!</p></div>';
+                return;
+            }
+            
+            list.innerHTML = members.map(m => {
+                const children = getChildren(m.id);
+                const parents = getParents(m.id);
+                const spouse = getSpouse(m.id);
+                const siblings = getSiblings(m.id);
+                
+                const photoHtml = m.photo ? `<img src="${m.photo}" alt="${m.name}" class="member-photo">` : '';
+                const age = calcAge(m);
+                return `<div class="member-card">
+                    ${photoHtml}
+                    <div class="member-name">${m.name} <span class="gender-badge gender-${m.gender}">${m.gender}</span></div>
+                    <div class="member-info">
+                        ${m.dob || m.birthYear ? `📅 ${m.dob ? 'DOB: ' + formatDate(m.dob) : 'Born: ' + m.birthYear}${age != null ? ` (Age ${age})` : ''}<br>` : ''}
+                        ${m.deathDate ? `⚰️ DOD: ${formatDate(m.deathDate)}<br>` : ''}
+                        ${m.occupation ? `💼 ${m.occupation}<br>` : ''}
+                        ${m.location ? `📍 ${m.location}<br>` : ''}
+                        ${m.notes ? `📝 ${m.notes}` : ''}
+                    </div>
+                    ${parents.length > 0 ? `<div class="relations"><strong>Parents:</strong> ${parents.map(p => p.name).join(', ')}</div>` : ''}
+                    ${children.length > 0 ? `<div class="relations"><strong>Children:</strong> ${children.map(c => c.name).join(', ')}</div>` : ''}
+                    ${spouse ? `<div class="relations"><strong>Spouse:</strong> ${spouse.name}</div>` : ''}
+                    ${siblings.length > 0 ? `<div class="relations"><strong>Siblings:</strong> ${siblings.map(s => s.name).join(', ')}</div>` : ''}
+                    <div class="btn-group">
+                        <button class="btn-small btn-view" onclick="viewMember('${m.id}')">👁 View</button>
+                        <button class="btn-small btn-edit" onclick="editMember('${m.id}')">✏️ Edit</button>
+                        <button class="btn-small btn-delete" onclick="deleteMember('${m.id}')">🗑 Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderTree() {
+            const view = document.getElementById('treeView');
+            const members = familyData.members;
+            
+            if (members.length === 0) {
+                view.innerHTML = '<div class="empty-state"><div class="empty-icon">🌳</div><p>No family members to display</p></div>';
+                return;
+            }
+
+            const roots = members.filter(m => getParents(m.id).length === 0);
+            const generations = [];
+            const processed = new Set();
+
+            function buildGenerations(memberList, level) {
+                if (memberList.length === 0) return;
+                if (!generations[level]) generations[level] = [];
+                
+                memberList.forEach(m => {
+                    if (!processed.has(m.id)) {
+                        generations[level].push(m);
+                        processed.add(m.id);
+                    }
+                });
+
+                const nextGen = [];
+                memberList.forEach(m => {
+                    getChildren(m.id).forEach(c => {
+                        if (!processed.has(c.id)) {
+                            nextGen.push(c);
+                        }
+                    });
+                });
+
+                if (nextGen.length > 0) {
+                    buildGenerations(nextGen, level + 1);
+                }
+            }
+
+            buildGenerations(roots, 0);
+
+            let html = '<div class="tree-container"><svg class="tree-canvas" id="treeCanvas"></svg>';
+            
+            generations.forEach((gen, genIndex) => {
+                const familyGroups = [];
+                const groupedIds = new Set();
+
+                gen.forEach(member => {
+                    if (groupedIds.has(member.id)) return;
+
+                    const spouse = getSpouse(member.id);
+                    if (spouse && gen.find(m => m.id === spouse.id)) {
+                        familyGroups.push({
+                            type: 'couple',
+                            members: [member, spouse]
+                        });
+                        groupedIds.add(member.id);
+                        groupedIds.add(spouse.id);
+                    } else {
+                        familyGroups.push({
+                            type: 'single',
+                            members: [member]
+                        });
+                        groupedIds.add(member.id);
+                    }
+                });
+
+                html += `
+                    <div class="generation-layer" data-generation="${genIndex}">
+                        <div style="width: 100%; text-align: center;">
+                            <div class="generation-title">Generation ${genIndex + 1}</div>
+                            <div style="display: flex; justify-content: center; align-items: flex-start; gap: 80px; flex-wrap: wrap;">
+                                ${familyGroups.map((group, groupIndex) => {
+                                    if (group.type === 'couple') {
+                                        return `
+                                            <div class="family-group" data-group="${genIndex}-${groupIndex}">
+                                                <div class="couple-unit">
+                                                    ${renderTreeCard(group.members[0])}
+                                                    <div style="font-size: 24px; margin: 0 8px;">❤</div>
+                                                    ${renderTreeCard(group.members[1])}
+                                                </div>
+                                            </div>
+                                        `;
+                                    } else {
+                                        return `
+                                            <div class="family-group" data-group="${genIndex}-${groupIndex}">
+                                                <div class="single-unit">
+                                                    ${renderTreeCard(group.members[0])}
+                                                </div>
+                                            </div>
+                                        `;
+                                    }
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            view.innerHTML = html;
+            
+            setTimeout(() => drawTreeConnections(), 100);
+        }
+
+        function renderTreeCard(m) {
+            const photoHtml = m.photo ? `<img src="${m.photo}" alt="${m.name}" class="tree-member-photo">` : '';
+            const age = calcAge(m);
+            const dateLine = m.dob ? `📅 ${formatDate(m.dob)}` : (m.birthYear ? `📅 ${m.birthYear}` : '📅 Unknown');
+            const deathLine = m.deathDate ? `⚰️ ${formatDate(m.deathDate)}` : '';
+            return `<div class="tree-member-card ${selectedTreeMember === m.id ? 'selected' : ''}" data-member-id="${m.id}" onclick="selectTreeMember('${m.id}')">
+                ${photoHtml}
+                <div class="tree-member-name">${m.name}</div>
+                <div class="tree-member-info">${dateLine}${age != null ? ` (Age ${age})` : ''}</div>
+                ${deathLine ? `<div class=\"tree-member-info\">${deathLine}</div>` : ''}
+                <div class="tree-member-info">💼 ${m.occupation || 'N/A'}</div>
+                <span class="gender-badge gender-${m.gender}">${m.gender}</span>
+            </div>`;
+        }
+
+        function drawTreeConnections() {
+            const svg = document.getElementById('treeCanvas');
+            if (!svg) return;
+            
+            const container = svg.parentElement;
+            const containerRect = container.getBoundingClientRect();
+            
+            svg.setAttribute('width', container.scrollWidth);
+            svg.setAttribute('height', container.scrollHeight);
+            svg.innerHTML = '';
+
+            // Draw spouse connections (horizontal heart lines) - only for actual spouses
+            familyData.spouses.forEach(couple => {
+                const card1 = document.querySelector(`[data-member-id="${couple.spouse1}"]`);
+                const card2 = document.querySelector(`[data-member-id="${couple.spouse2}"]`);
+                
+                // Only draw if both cards exist in the DOM (are rendered)
+                if (card1 && card2) {
+                    const rect1 = card1.getBoundingClientRect();
+                    const rect2 = card2.getBoundingClientRect();
+                    
+                    // Only draw if cards are in the same generation (same Y level approximately)
+                    const yDiff = Math.abs(rect1.top - rect2.top);
+                    if (yDiff > 100) return; // Skip if too far apart vertically
+                    
+                    // Calculate midpoints on the inner edges of cards
+                    const x1 = rect1.right - containerRect.left + container.scrollLeft;
+                    const y1 = rect1.top - containerRect.top + rect1.height / 2 + container.scrollTop;
+                    const x2 = rect2.left - containerRect.left + container.scrollLeft;
+                    const y2 = rect2.top - containerRect.top + rect2.height / 2 + container.scrollTop;
+                    
+                    // Draw curved path for spouse connection
+                    const midX = (x1 + x2) / 2;
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', `M ${x1} ${y1} Q ${midX} ${y1} ${midX} ${(y1 + y2) / 2} Q ${midX} ${y2} ${x2} ${y2}`);
+                    path.setAttribute('stroke', '#e91e63');
+                    path.setAttribute('stroke-width', '3');
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('stroke-linecap', 'round');
+                    svg.appendChild(path);
+                }
+            });
+
+            // Draw parent-child connections - only for actual relationships
+            const processedParentChildGroups = new Set();
+            
+            // Group relationships by parent couple
+            const parentGroups = new Map();
+            
+            familyData.relationships.forEach(rel => {
+                const parent = familyData.members.find(m => m.id === rel.parentId);
+                const child = familyData.members.find(m => m.id === rel.childId);
+                
+                if (!parent || !child) return;
+                
+                // Get the spouse of the parent to group them together
+                const spouse = getSpouse(parent.id);
+                const coupleKey = spouse ? [parent.id, spouse.id].sort().join('-') : parent.id;
+                
+                if (!parentGroups.has(coupleKey)) {
+                    parentGroups.set(coupleKey, {
+                        parent: parent,
+                        spouse: spouse,
+                        children: new Set()
+                    });
+                }
+                
+                // Add this child to the parent group
+                parentGroups.get(coupleKey).children.add(child.id);
+            });
+            
+            // Now draw connections for each parent group
+            parentGroups.forEach((group, coupleKey) => {
+                // Skip if already processed
+                if (processedParentChildGroups.has(coupleKey)) return;
+                processedParentChildGroups.add(coupleKey);
+                
+                // Get all actual child members
+                const children = Array.from(group.children)
+                    .map(childId => familyData.members.find(m => m.id === childId))
+                    .filter(Boolean);
+                
+                if (children.length === 0) return;
+                
+                // Verify parent card exists in DOM
+                const parentCard = document.querySelector(`[data-member-id="${group.parent.id}"]`);
+                if (!parentCard) return;
+                
+                const spouseCard = group.spouse ? document.querySelector(`[data-member-id="${group.spouse.id}"]`) : null;
+
+                const parentRect = parentCard.getBoundingClientRect();
+                let parentX, parentY;
+
+                if (spouseCard) {
+                    // If couple, find the midpoint between them
+                    const spouseRect = spouseCard.getBoundingClientRect();
+                    parentX = (parentRect.left + parentRect.right + spouseRect.left + spouseRect.right) / 4 - containerRect.left + container.scrollLeft;
+                    parentY = Math.max(parentRect.bottom, spouseRect.bottom) - containerRect.top + container.scrollTop;
+                } else {
+                    // Single parent
+                    parentX = parentRect.left - containerRect.left + parentRect.width / 2 + container.scrollLeft;
+                    parentY = parentRect.bottom - containerRect.top + container.scrollTop;
+                }
+
+                // Drop down from parent(s)
+                const dropDistance = 60;
+                const junctionY = parentY + dropDistance;
+                
+                // Vertical line from parent(s) down to junction point
+                const parentLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                parentLine.setAttribute('x1', parentX);
+                parentLine.setAttribute('y1', parentY);
+                parentLine.setAttribute('x2', parentX);
+                parentLine.setAttribute('y2', junctionY);
+                parentLine.setAttribute('stroke', '#667eea');
+                parentLine.setAttribute('stroke-width', '3');
+                parentLine.setAttribute('stroke-linecap', 'round');
+                svg.appendChild(parentLine);
+
+                // Get all children positions - verify each child card exists and is valid
+                const childrenWithCards = children.map(child => {
+                    const childCard = document.querySelector(`[data-member-id="${child.id}"]`);
+                    if (!childCard) return null;
+                    
+                    // Verify this is actually a child of this parent in relationships
+                    const isValidChild = familyData.relationships.some(r => 
+                        (r.parentId === group.parent.id || (group.spouse && r.parentId === group.spouse.id)) && r.childId === child.id
+                    );
+                    if (!isValidChild) return null;
+                    
+                    const childRect = childCard.getBoundingClientRect();
+                    return {
+                        child,
+                        x: childRect.left - containerRect.left + childRect.width / 2 + container.scrollLeft,
+                        y: childRect.top - containerRect.top + container.scrollTop
+                    };
+                }).filter(Boolean);
+
+                if (childrenWithCards.length === 0) return;
+
+                if (childrenWithCards.length === 1) {
+                    // Single child - straight line
+                    const childData = childrenWithCards[0];
+                    const childLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    childLine.setAttribute('x1', parentX);
+                    childLine.setAttribute('y1', junctionY);
+                    childLine.setAttribute('x2', childData.x);
+                    childLine.setAttribute('y2', childData.y);
+                    childLine.setAttribute('stroke', '#667eea');
+                    childLine.setAttribute('stroke-width', '3');
+                    childLine.setAttribute('stroke-linecap', 'round');
+                    svg.appendChild(childLine);
+                } else {
+                    // Multiple children - T-junction style
+                    const childPositions = childrenWithCards.map(c => c.x);
+                    const minX = Math.min(...childPositions);
+                    const maxX = Math.max(...childPositions);
+                    
+                    // Horizontal line connecting all children
+                    const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    hLine.setAttribute('x1', minX);
+                    hLine.setAttribute('y1', junctionY);
+                    hLine.setAttribute('x2', maxX);
+                    hLine.setAttribute('y2', junctionY);
+                    hLine.setAttribute('stroke', '#667eea');
+                    hLine.setAttribute('stroke-width', '3');
+                    hLine.setAttribute('stroke-linecap', 'round');
+                    svg.appendChild(hLine);
+                    
+                    // Vertical lines down to each child
+                    childrenWithCards.forEach(childData => {
+                        const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        vLine.setAttribute('x1', childData.x);
+                        vLine.setAttribute('y1', junctionY);
+                        vLine.setAttribute('x2', childData.x);
+                        vLine.setAttribute('y2', childData.y);
+                        vLine.setAttribute('stroke', '#667eea');
+                        vLine.setAttribute('stroke-width', '3');
+                        vLine.setAttribute('stroke-linecap', 'round');
+                        svg.appendChild(vLine);
+                    });
+                }
+            });
+        }
+
+        function selectTreeMember(id) {
+            selectedTreeMember = id;
+            renderTree();
+            showInfoPanel(id);
+        }
+
+        function showInfoPanel(id) {
+            const m = familyData.members.find(x => x.id === id);
+            if (!m) return;
+            
+            const panel = document.getElementById('infoPanel');
+            document.getElementById('infoPanelTitle').textContent = m.name;
+            
+            const parents = getParents(id);
+            const children = getChildren(id);
+            const spouse = getSpouse(id);
+            const siblings = getSiblings(id);
+            const gps = getGrandparents(id);
+            const gcs = getGrandchildren(id);
+            const aus = getAuntsUncles(id);
+            const cousins = getCousins(id);
+            const nns = getNiecesNephews(id);
+            
+            const photoHtml = m.photo ? `<div style="text-align: center; margin-bottom: 15px;"><img src="${m.photo}" alt="${m.name}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;"></div>` : '';
+            const age = calcAge(m);
+            let html = `<div class="info-section">
+                ${photoHtml}
+                <div class="info-section-title">Basic Info</div>
+                <div><strong>Date of Birth:</strong> ${m.dob ? formatDate(m.dob) : (m.birthYear || 'Unknown')}</div>
+                ${age != null ? `<div><strong>Age:</strong> ${age}</div>` : ''}
+                <div><strong>Gender:</strong> ${m.gender}</div>
+                ${m.deathDate ? `<div><strong>Death Date:</strong> ${formatDate(m.deathDate)}</div>` : ''}
+                ${m.occupation ? `<div><strong>Occupation:</strong> ${m.occupation}</div>` : ''}
+                ${m.location ? `<div><strong>Location:</strong> ${m.location}</div>` : ''}
+                ${m.notes ? `<div><strong>Notes:</strong> ${m.notes}</div>` : ''}
+            </div>`;
+            
+            if (parents.length > 0) html += `<div class="info-section"><div class="info-section-title">👨‍👩 Parents</div>${parents.map(p => `<div class="relation-tag" onclick="selectTreeMember('${p.id}')">${p.name}</div>`).join('')}</div>`;
+            if (spouse) html += `<div class="info-section"><div class="info-section-title">💑 Spouse</div><div class="relation-tag" onclick="selectTreeMember('${spouse.id}')">${spouse.name}</div></div>`;
+            if (children.length > 0) html += `<div class="info-section"><div class="info-section-title">👶 Children</div>${children.map(c => `<div class="relation-tag" onclick="selectTreeMember('${c.id}')">${c.name}</div>`).join('')}</div>`;
+            if (siblings.length > 0) html += `<div class="info-section"><div class="info-section-title">👫 Siblings</div>${siblings.map(s => `<div class="relation-tag" onclick="selectTreeMember('${s.id}')">${s.name}</div>`).join('')}</div>`;
+            if (gps.length > 0) html += `<div class="info-section"><div class="info-section-title">👴👵 Grandparents</div>${gps.map(gp => `<div class="relation-tag" onclick="selectTreeMember('${gp.id}')">${gp.name}</div>`).join('')}</div>`;
+            if (gcs.length > 0) html += `<div class="info-section"><div class="info-section-title">👪 Grandchildren</div>${gcs.map(gc => `<div class="relation-tag" onclick="selectTreeMember('${gc.id}')">${gc.name}</div>`).join('')}</div>`;
+            if (aus.length > 0) html += `<div class="info-section"><div class="info-section-title">🧑‍🤝‍🧑 Aunts & Uncles</div>${aus.map(au => `<div class="relation-tag" onclick="selectTreeMember('${au.id}')">${au.name}</div>`).join('')}</div>`;
+            if (cousins.length > 0) html += `<div class="info-section"><div class="info-section-title">🤝 Cousins</div>${cousins.map(c => `<div class="relation-tag" onclick="selectTreeMember('${c.id}')">${c.name}</div>`).join('')}</div>`;
+            if (nns.length > 0) html += `<div class="info-section"><div class="info-section-title">👧👦 Nieces & Nephews</div>${nns.map(nn => `<div class="relation-tag" onclick="selectTreeMember('${nn.id}')">${nn.name}</div>`).join('')}</div>`;
+            
+            document.getElementById('infoPanelContent').innerHTML = html;
+            panel.classList.add('show');
+        }
+
+        function closeInfoPanel() {
+            const panel = document.getElementById('infoPanel');
+            if (panel) {
+                panel.classList.remove('show');
+            }
+            selectedTreeMember = null;
+            
+            const treePage = document.getElementById('treePage');
+            if (treePage && treePage.classList.contains('active')) {
+                renderTree();
+            }
+        }
+
+        function viewMember(id) {
+            switchTab('tree');
+            setTimeout(() => selectTreeMember(id), 100);
+        }
+
+        function renderStats() {
+            const view = document.getElementById('statsView');
+            const members = familyData.members;
+            const totalM = members.length;
+            const males = members.filter(m => m.gender === 'male').length;
+            const females = members.filter(m => m.gender === 'female').length;
+            const withChildren = members.filter(m => getChildren(m.id).length > 0).length;
+            const roots = members.filter(m => getParents(m.id).length === 0).length;
+            
+            const currentYear = new Date().getFullYear();
+            const ages = members.map(calcAge).filter(a => typeof a === 'number' && a >= 0);
+            const avgAge = ages.length > 0 ? Math.round(ages.reduce((a,b)=>a+b,0) / ages.length) : 0;
+
+            const aliveCount = members.filter(isAlive).length;
+            const deadCount = members.length - aliveCount;
+
+            const membersWithBY = members.map(m => ({ m, by: birthYearOf(m) })).filter(x => x.by);
+            const oldestMember = membersWithBY.sort((a,b)=>a.by-b.by)[0]?.m;
+            const youngestMember = membersWithBY.sort((a,b)=>b.by-a.by)[0]?.m;
+            
+            const locations = [...new Set(members.filter(m => m.location).map(m => m.location))].length;
+            const occupations = [...new Set(members.filter(m => m.occupation).map(m => m.occupation))].length;
+            
+            const largestFamily = members.map(m => {
+                return { member: m, childCount: getChildren(m.id).length };
+            }).sort((a, b) => b.childCount - a.childCount)[0];
+
+            view.innerHTML = `
+                <div class="section-title">📊 Family Statistics Overview</div>
+                <div class="stats-grid">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <div class="stat-card-number" style="color: white;">${totalM}</div>
+                        <div class="stat-card-label" style="color: rgba(255,255,255,0.9);">Total Members</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                        <div class="stat-card-number" style="color: white;">${males}</div>
+                        <div class="stat-card-label" style="color: rgba(255,255,255,0.9);">👨 Males</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                        <div class="stat-card-number" style="color: white;">${females}</div>
+                        <div class="stat-card-label" style="color: rgba(255,255,255,0.9);">👩 Females</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                        <div class="stat-card-number" style="color: white;">${familyData.spouses.length}</div>
+                        <div class="stat-card-label" style="color: rgba(255,255,255,0.9);">💑 Married Couples</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                        <div class="stat-card-number" style="color: white;">${withChildren}</div>
+                        <div class="stat-card-label" style="color: rgba(255,255,255,0.9);">👨‍👩‍👧 Parents</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                        <div class="stat-card-number" style="color: white;">${roots}</div>
+                        <div class="stat-card-label" style="color: rgba(255,255,255,0.9);">🌳 Root Members</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                        <div class="stat-card-number" style="color: white;">${avgAge}</div>
+                        <div class="stat-card-label" style="color: rgba(255,255,255,0.9);">📅 Average Age</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                        <div class="stat-card-number" style="color: white;">${aliveCount}</div>
+                        <div class="stat-card-label" style="color: rgba(255,255,255,0.9);">🫀 Alive</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                        <div class="stat-card-number" style="color: white;">${deadCount}</div>
+                        <div class="stat-card-label" style="color: rgba(255,255,255,0.9);">⚰️ Deceased</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <div class="stat-card-number" style="color: white;">${familyData.relationships.length}</div>
+                        <div class="stat-card-label" style="color: rgba(255,255,255,0.9);">🔗 Relationships</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                        <div class="stat-card-number" style="color: white;">${locations}</div>
+                        <div class="stat-card-label" style="color: rgba(255,255,255,0.9);">📍 Locations</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                        <div class="stat-card-number" style="color: white;">${occupations}</div>
+                        <div class="stat-card-label" style="color: rgba(255,255,255,0.9);">💼 Occupations</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 40px;">
+                    <div class="section-title">🏆 Family Highlights</div>
+                    <div class="stats-grid">
+                        ${oldestMember ? `
+                        <div class="stat-card">
+                            <div style="font-size: 16px; font-weight: 700; color: #667eea; margin-bottom: 10px;">👴 Oldest Member</div>
+                            <div style="font-size: 20px; font-weight: 700; color: #333;">${oldestMember.name}</div>
+                            <div style="font-size: 14px; color: #666; margin-top: 5px;">Born ${oldestMember.dob ? formatDate(oldestMember.dob) : oldestMember.birthYear}${calcAge(oldestMember) != null ? ` (Age ${calcAge(oldestMember)})` : ''}</div>
+                        </div>` : ''}
+                        
+                        ${youngestMember ? `
+                        <div class="stat-card">
+                            <div style="font-size: 16px; font-weight: 700; color: #667eea; margin-bottom: 10px;">👶 Youngest Member</div>
+                            <div style="font-size: 20px; font-weight: 700; color: #333;">${youngestMember.name}</div>
+                            <div style="font-size: 14px; color: #666; margin-top: 5px;">Born ${youngestMember.dob ? formatDate(youngestMember.dob) : youngestMember.birthYear}${calcAge(youngestMember) != null ? ` (Age ${calcAge(youngestMember)})` : ''}</div>
+                        </div>` : ''}
+                        
+                        ${largestFamily && largestFamily.childCount > 0 ? `
+                        <div class="stat-card">
+                            <div style="font-size: 16px; font-weight: 700; color: #667eea; margin-bottom: 10px;">👨‍👩‍👧‍👦 Most Children</div>
+                            <div style="font-size: 20px; font-weight: 700; color: #333;">${largestFamily.member.name}</div>
+                            <div style="font-size: 14px; color: #666; margin-top: 5px;">${largestFamily.childCount} ${largestFamily.childCount === 1 ? 'child' : 'children'}</div>
+                        </div>` : ''}
+                    </div>
+                </div>
+
+                <div style="margin-top: 40px;">
+                    <div class="section-title">👥 All Family Members</div>
+                    <div class="stats-grid">
+                        ${members.map(m => `
+                            <div class="stat-card" style="text-align: left; cursor: pointer; transition: all 0.3s;" onclick="viewMember('${m.id}')">
+                                <div style="font-size: 20px; font-weight: 700; color: #667eea; margin-bottom: 8px;">
+                                    ${m.name}
+                                </div>
+                                <div style="font-size: 14px; color: #666;">
+                                    <span class="gender-badge gender-${m.gender}">${m.gender}</span>
+                                    <div style="margin-top: 8px;">
+                                        ${(m.dob || m.birthYear) ? `📅 ${(m.dob ? formatDate(m.dob) : m.birthYear)}${calcAge(m) != null ? ` (Age ${calcAge(m)})` : ''}<br>` : ''}
+                                        ${m.occupation ? `💼 ${m.occupation}<br>` : ''}
+                                        ${m.location ? `📍 ${m.location}` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateSelects() {
+            const selects = ['parentSelect', 'childSelect', 'spouse1Select', 'spouse2Select'];
+            selects.forEach(sid => {
+                const sel = document.getElementById(sid);
+                const cur = sel.value;
+                sel.innerHTML = '<option value="">Select person</option>' + familyData.members.map(m => 
+                    `<option value="${m.id}">${m.name} (${m.birthYear || '?'})</option>`
+                ).join('');
+                if (cur) sel.value = cur;
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('totalMembers').textContent = familyData.members.length;
+            const roots = familyData.members.filter(m => getParents(m.id).length === 0);
+            let maxGen = 0;
+            function countGen(mems, level) {
+                if (mems.length === 0) return;
+                maxGen = Math.max(maxGen, level + 1);
+                const next = new Set();
+                mems.forEach(m => getChildren(m.id).forEach(c => next.add(c)));
+                countGen(Array.from(next), level + 1);
+            }
+            countGen(roots, 0);
+            document.getElementById('totalGenerations').textContent = maxGen;
+        }
+
+        function updateAll() {
+            renderMembers();
+            updateSelects();
+            updateStats();
+            
+            const treePage = document.getElementById('treePage');
+            if (treePage && treePage.classList.contains('active')) {
+                renderTree();
+            }
+            
+            const statsPage = document.getElementById('statsPage');
+            if (statsPage && statsPage.classList.contains('active')) {
+                renderStats();
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            
+            if (tab === 'manage') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('managePage').classList.add('active');
+            } else if (tab === 'tree') {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('treePage').classList.add('active');
+                setTimeout(() => renderTree(), 100);
+            } else if (tab === 'stats') {
+                document.querySelector('.tab:nth-child(3)').classList.add('active');
+                document.getElementById('statsPage').classList.add('active');
+                renderStats();
+            } else if (tab === 'profile') {
+                document.getElementById('tabProfile').classList.add('active');
+                document.getElementById('profilePage').classList.add('active');
+                renderProfile();
+            } else if (tab === 'payments') {
+                document.getElementById('tabPayments').classList.add('active');
+                document.getElementById('paymentsPage').classList.add('active');
+                renderPayments();
+            } else if (tab === 'families') {
+                document.getElementById('tabFamilies').classList.add('active');
+                document.getElementById('familiesPage').classList.add('active');
+                renderFamilies();
+            }
+        }
+
+        function updateUIForRole() {
+            const role = appState.currentUser?.role;
+            const isSuper = role === 'super';
+            // Toggle tabs
+            document.getElementById('tabManage').style.display = isSuper ? 'none' : '';
+            document.getElementById('tabTree').style.display = isSuper ? 'none' : '';
+            document.getElementById('tabStats').style.display = isSuper ? 'none' : '';
+            document.getElementById('tabPayments').style.display = isSuper ? 'none' : '';
+            document.getElementById('tabFamilies').style.display = isSuper ? '' : 'none';
+            document.getElementById('tabProfile').style.display = '';
+            // Header stats hidden for super admin
+            document.getElementById('headerStats').style.display = isSuper ? 'none' : '';
+            // Default landing tab per role
+            if (isSuper) {
+                switchTab('families');
+            } else {
+                switchTab('manage');
+            }
+        }
+
+        function openProfile() {
+            switchTab('profile');
+        }
+
+        function logout() {
+            appState.currentUser = null;
+            isAuthenticated = false;
+            showAuth();
+        }
+
+        function renderProfile() {
+            const view = document.getElementById('profileView');
+            const user = appState.currentUser;
+            if (!user) { view.innerHTML = '<div class="empty-state"><div class="empty-icon">🔐</div><p>Please login</p></div>'; return; }
+            if (user.role === 'super') {
+                view.innerHTML = `
+                    <div class="section-title">👤 Super Admin Profile</div>
+                    <div class="member-card">
+                        ${user.photo ? `<img src="${user.photo}" alt="Profile" class="member-photo">` : ''}
+                        <div class="member-info">
+                            <div><strong>Role:</strong> Super Admin</div>
+                            <div><strong>Email:</strong> ${user.email}</div>
+                            <div><strong>Employee ID:</strong> ${user.employeeId}</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminPhoto">Profile Photo</label>
+                        <input type="file" id="adminPhoto" accept="image/*" title="Upload profile photo">
+                        <div id="adminPhotoPreview" class="photo-preview"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveAdminPhoto()">Save Photo</button>
+                    <div class="section-title" style="margin-top:20px;">🏢 Quick Access</div>
+                    <button class="btn btn-secondary" onclick="switchTab('families')">View Families</button>
+                `;
+            } else {
+                const fam = appState.families.find(f => f.familyId === user.familyId);
+                view.innerHTML = `
+                    <div class="section-title">👤 Family Admin Profile</div>
+                    <div class="member-card">
+                        ${user.photo ? `<img src="${user.photo}" alt="Profile" class="member-photo">` : ''}
+                        <div class="member-info">
+                            <div><strong>Role:</strong> Family Admin</div>
+                            <div><strong>Email:</strong> ${user.email}</div>
+                            <div><strong>Family ID:</strong> ${user.familyId}</div>
+                            <div><strong>Family Name:</strong> ${fam ? fam.name : 'Unknown'}</div>
+                            <div><strong>Head Name:</strong> ${fam ? fam.headName : 'Unknown'}</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminPhoto">Profile Photo</label>
+                        <input type="file" id="adminPhoto" accept="image/*" title="Upload profile photo">
+                        <div id="adminPhotoPreview" class="photo-preview"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveAdminPhoto()">Save Photo</button>
+                `;
+            }
+            const photoInput = document.getElementById('adminPhoto');
+            const preview = document.getElementById('adminPhotoPreview');
+            if (photoInput && preview) {
+                photoInput.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (!file) { preview.innerHTML=''; return; }
+                    if (file.size > 5 * 1024 * 1024) { showToast('Photo must be < 5MB','error'); photoInput.value=''; return; }
+                    const reader = new FileReader();
+                    reader.onload = function(ev){ preview.innerHTML = `<img src="${ev.target.result}" alt="Preview">`; };
+                    reader.readAsDataURL(file);
+                };
+            }
+        }
+
+        function saveAdminPhoto() {
+            const input = document.getElementById('adminPhoto');
+            const file = input?.files?.[0];
+            if (!file) { showToast('Please choose a photo', 'error'); return; }
+            convertImageToBase64(file, function(data){
+                if (!appState.currentUser) return;
+                appState.currentUser.photo = data;
+                showToast('Profile photo saved');
+                renderProfile();
+            });
+        }
+
+        function renderFamilies() {
+            const view = document.getElementById('familiesView');
+            if (!(appState.currentUser && appState.currentUser.role === 'super')) {
+                view.innerHTML = '<div class="empty-state"><div class="empty-icon">🚫</div><p>Access denied</p></div>';
+                return;
+            }
+            if (appState.families.length === 0) {
+                view.innerHTML = '<div class="empty-state"><div class="empty-icon">🏷️</div><p>No families registered yet.</p></div>';
+                return;
+            }
+            view.innerHTML = appState.families.map(f => `
+                <div class="member-card" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div class="member-name">${f.name}</div>
+                        <div class="member-info">
+                            <div><strong>Head:</strong> ${f.headName}</div>
+                            <div><strong>Family ID:</strong> ${f.familyId}</div>
+                        </div>
+                    </div>
+                    <div style="font-size:32px; opacity:0.3;">🏠</div>
+                </div>
+            `).join('');
+        }
+
+        // Payments
+        let selectedPlan = null; // { code: 'YEARLY'|'MONTHLY', name, amount }
+        function selectPlan(code) {
+            if (code === 'YEARLY') {
+                selectedPlan = { code, name: 'Yearly', amount: 500 };
+            } else if (code === 'MONTHLY') {
+                selectedPlan = { code, name: 'Monthly', amount: 50 };
+            } else {
+                selectedPlan = null;
+            }
+            const sum = document.getElementById('selectedPlanSummary');
+            if (selectedPlan) {
+                sum.textContent = `${selectedPlan.name} plan selected • ₹${selectedPlan.amount}`;
+            } else {
+                sum.textContent = 'None selected';
+            }
+        }
+
+        function renderPayments() {
+            // Prefill summary if already selected
+            selectPlan(selectedPlan?.code || null);
+        }
+
+        function openPaymentGateway() {
+            if (!appState.currentUser || appState.currentUser.role !== 'family') {
+                showToast('Payments are available to family admins only', 'error');
+                return;
+            }
+            if (!selectedPlan) { showToast('Please select a plan first', 'error'); return; }
+            const email = appState.currentUser.email;
+            document.getElementById('gwPlanName').textContent = selectedPlan.name;
+            document.getElementById('gwPlanAmount').textContent = selectedPlan.amount;
+            document.getElementById('gwEmail').textContent = email;
+            document.getElementById('paymentModal').classList.add('show');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('show');
+        }
+
+		function sendPaymentRequest() {
+			const email = appState.currentUser?.email || '';
+			const txn = 'TXN-' + Math.random().toString(36).substr(2,8).toUpperCase();
+			closePaymentModal();
+			showToast(`Payment request sent to ${email} (Ref ${txn})`);
+		}
+
+
+
+        // Photo preview functionality and Auth init
+        document.addEventListener('DOMContentLoaded', function() {
+            const photoInput = document.getElementById('memberPhoto');
+            const photoPreview = document.getElementById('photoPreview');
+            
+            if (photoInput && photoPreview) {
+                photoInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Check file size (max 5MB)
+                        if (file.size > 5 * 1024 * 1024) {
+                            showToast('Photo size must be less than 5MB', 'error');
+                            photoInput.value = '';
+                            photoPreview.innerHTML = '';
+                            return;
+                        }
+                        
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            photoPreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        photoPreview.innerHTML = '';
+                    }
+                });
+            }
+
+            // Show auth on load
+            showAuth();
+        });
+
+        // Auth logic
+        let loginMode = 'family'; // 'family' | 'super'
+        let isAuthenticated = false;
+        
+        function formatDate(d) {
+            try { return new Date(d).toLocaleDateString(); } catch(e) { return d; }
+        }
+        function birthYearOf(m) { return m.dob ? new Date(m.dob).getFullYear() : (m.birthYear ? parseInt(m.birthYear) : null); }
+        function calcAge(m) {
+            const dob = m.dob ? new Date(m.dob) : (m.birthYear ? new Date(m.birthYear + '-01-01') : null);
+            if (!dob || isNaN(dob)) return null;
+            const end = m.deathDate ? new Date(m.deathDate) : new Date();
+            let age = end.getFullYear() - dob.getFullYear();
+            const adjust = (end.getMonth() < dob.getMonth()) || (end.getMonth() === dob.getMonth() && end.getDate() < dob.getDate());
+            if (adjust) age -= 1;
+            return age;
+        }
+        function isAlive(m) { return !m.deathDate; }
+
+        function showAuth() {
+            const overlay = document.getElementById('authOverlay');
+            const app = document.getElementById('appContainer');
+            if (!isAuthenticated) {
+                overlay.classList.add('show');
+                app.style.filter = 'blur(8px)';
+                app.style.pointerEvents = 'none';
+            }
+        }
+
+        function closeAuth() {
+            const overlay = document.getElementById('authOverlay');
+            const app = document.getElementById('appContainer');
+            overlay.classList.remove('show');
+            app.style.filter = '';
+            app.style.pointerEvents = '';
+        }
+
+        function openSignup() {
+            document.getElementById('signupOverlay').classList.add('show');
+        }
+
+        function closeSignup() {
+            document.getElementById('signupOverlay').classList.remove('show');
+        }
+
+        function backToLogin() {
+            closeSignup();
+            setLoginMode('family');
+        }
+
+        function setLoginMode(mode) {
+            loginMode = mode;
+            const famTab = document.getElementById('familyLoginTab');
+            const admTab = document.getElementById('adminLoginTab');
+            const famForm = document.getElementById('familyLoginForm');
+            const supForm = document.getElementById('superLoginForm');
+            if (mode === 'family') {
+                famTab.classList.add('active');
+                admTab.classList.remove('active');
+                famForm.style.display = '';
+                supForm.style.display = 'none';
+            } else {
+                famTab.classList.remove('active');
+                admTab.classList.add('active');
+                famForm.style.display = 'none';
+                supForm.style.display = '';
+            }
+        }
+
+        function submitFamilyLogin() {
+            const email = (document.getElementById('loginEmail').value || '').trim();
+            const pass = (document.getElementById('loginPassword').value || '').trim();
+            const familyId = (document.getElementById('loginFamilyId').value || '').trim();
+            if (!email || !pass || !familyId) { showToast('Please fill all fields', 'error'); return; }
+            // Frontend-only success
+            isAuthenticated = true;
+            appState.currentUser = { role: 'family', email, familyId };
+            if (window.initFirestoreSync) { window.initFirestoreSync(familyId, email); }
+            ensureFamilyInRegistry(familyId, familyId, email.split('@')[0]);
+            showToast('Logged in successfully');
+            closeAuth();
+            updateUIForRole();
+        }
+
+        function submitSuperLogin() {
+            const email = (document.getElementById('superEmail').value || '').trim();
+            const pass = (document.getElementById('superPassword').value || '').trim();
+            const emp = (document.getElementById('superEmployeeId').value || '').trim();
+            if (!email || !pass || !emp) { showToast('Please fill all fields', 'error'); return; }
+            isAuthenticated = true;
+            appState.currentUser = { role: 'super', email, employeeId: emp };
+            showToast('Super admin logged in');
+            closeAuth();
+            updateUIForRole();
+        }
+
+        async function submitFamilySignup() {
+            const name = (document.getElementById('signupName').value || '').trim();
+            const email = (document.getElementById('signupEmail').value || '').trim();
+            const pass = (document.getElementById('signupPassword').value || '').trim();
+            const fam = (document.getElementById('signupFamilyName').value || '').trim();
+            if (!name || !email || !pass || !fam) { showToast('Please fill all fields', 'error'); return; }
+            try {
+                if (window.firebaseEmailSignup) {
+                    await window.firebaseEmailSignup(name, email, pass);
+                    showToast('Verification email sent. Please check your inbox.');
+                }
+            } catch (e) {
+                showToast('Signup failed: ' + (e?.message || 'Unknown error'), 'error');
+                return;
+            }
+            // Generate a simple familyId
+            const familyId = (fam.trim().toUpperCase().replace(/[^A-Z0-9]+/g,'_') + '_' + Math.random().toString(36).substr(2,4)).toUpperCase();
+            appState.families.push({ familyId, name: fam, headName: name });
+            if (window.initFirestoreSync) { window.initFirestoreSync(familyId, email); }
+            showToast('Family admin account created. Family ID: ' + familyId);
+            closeSignup();
+            setLoginMode('family');
+            // Pre-fill family id back on login form for convenience
+            const loginFamilyId = document.getElementById('loginFamilyId');
+            if (loginFamilyId) loginFamilyId.value = familyId;
+        }
+
+        // Initialize on page load
+        updateAll();
+    </script>
+<!-- Supabase client and env loader -->
+<script src="https://esm.sh/@supabase/supabase-js@2"></script>
+<script src="./env-loader.js"></script>
+<script>
+    // No-op persistence hooks to avoid errors; can be wired to Supabase tables later
+    window.persistMemberAdd = window.persistMemberAdd || function(){};
+    window.persistMemberUpdate = window.persistMemberUpdate || function(){};
+    window.persistMemberDelete = window.persistMemberDelete || function(){};
+    window.persistRelationshipAdd = window.persistRelationshipAdd || function(){};
+    window.persistSpouseAdd = window.persistSpouseAdd || function(){};
+    window.initFirestoreSync = undefined;
+
+    // Supabase auth hookup for signup/login
+    (async function(){
+        async function waitEnv(){
+            return new Promise(res=>{
+                let tries = 0;
+                const iv = setInterval(()=>{
+                    if (window.ENV?.SUPABASE_URL && window.ENV?.SUPABASE_ANON_KEY){ clearInterval(iv); res(); }
+                    if (++tries>100){ clearInterval(iv); res(); }
+                }, 50);
+            });
+        }
+        await waitEnv();
+        if (!window.ENV?.SUPABASE_URL || !window.ENV?.SUPABASE_ANON_KEY){ console.warn('ENV not loaded; Supabase auth disabled'); return; }
+        const sb = window.supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
+
+        // Replace family signup to use Supabase signUp
+        const origSignup = window.submitFamilySignup;
+        window.submitFamilySignup = async function(){
+            const name = (document.getElementById('signupName').value || '').trim();
+            const email = (document.getElementById('signupEmail').value || '').trim();
+            const pass = (document.getElementById('signupPassword').value || '').trim();
+            const fam = (document.getElementById('signupFamilyName').value || '').trim();
+            if (!name || !email || !pass || !fam) { showToast('Please fill all fields', 'error'); return; }
+            const familyId = (fam.trim().toUpperCase().replace(/[^A-Z0-9]+/g,'_') + '_' + Math.random().toString(36).substr(2,4)).toUpperCase();
+            try {
+                const { data, error } = await sb.auth.signUp({
+                    email,
+                    password: pass,
+                    options: {
+                        emailRedirectTo: window.location.origin + window.location.pathname,
+                        data: { name, role: 'Family Admin', family_name: fam }
+                    }
+                });
+                if (error) throw error;
+                if (data.user) {
+                    await sb.from('profiles').upsert({ id: data.user.id, email, name, role: 'Family Admin', family_name: fam });
+                }
+                showToast('Signup successful. Check email for verification.');
+            } catch (e) {
+                showToast('Signup failed: ' + (e?.message || 'Unknown error'), 'error');
+                return;
+            }
+            appState.families.push({ familyId, name: fam, headName: name });
+            showToast('Family created. Family ID: ' + familyId);
+            closeSignup(); setLoginMode('family');
+            const loginFamilyId = document.getElementById('loginFamilyId'); if (loginFamilyId) loginFamilyId.value = familyId;
+        };
+
+        // Replace family login to use Supabase signIn
+        const origLogin = window.submitFamilyLogin;
+        window.submitFamilyLogin = async function(){
+            const email = (document.getElementById('loginEmail').value || '').trim();
+            const pass = (document.getElementById('loginPassword').value || '').trim();
+            const familyId = (document.getElementById('loginFamilyId').value || '').trim();
+            if (!email || !pass || !familyId) { showToast('Please fill all fields', 'error'); return; }
+            try {
+                const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+                if (error) throw error;
+                const { data: prof } = await sb.from('profiles').select('*').eq('email', email).maybeSingle();
+                isAuthenticated = true;
+                appState.currentUser = { role: prof?.role || 'family', email, familyId };
+                ensureFamilyInRegistry(familyId, familyId, email.split('@')[0]);
+                showToast('Logged in successfully');
+                closeAuth(); updateUIForRole();
+            } catch (e) {
+                showToast('Login failed: ' + (e?.message || 'Unknown error'), 'error');
+            }
+        };
+    })();
+</script>
+  </body>
+</html>

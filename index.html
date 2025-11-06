@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Apna Parivaar – Digital Family Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: {} },
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style> body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; } </style>
+  <!-- Supabase JS v2 -->
+  <script src="https://esm.sh/@supabase/supabase-js@2"></script>
+  <!-- vis-network for simple tree -->
+  <script src="https://unpkg.com/vis-network@9.1.9/dist/vis-network.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/vis-network@9.1.9/dist/vis-network.min.css" />
+  <!-- Frontend env variables (create env.js from env.example.js) -->
+  <script src="./env.js"></script>
+</head>
+<body class="h-full bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+  <div class="min-h-screen">
+    <header class="border-b border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/60 backdrop-blur sticky top-0 z-10">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">👨‍👩‍👧‍👦</span>
+          <h1 class="text-lg font-semibold">Apna Parivaar</h1>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="themeToggle" type="button" class="px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-700 text-sm">Toggle Theme</button>
+          <button id="logoutBtn" type="button" class="hidden px-3 py-1.5 rounded-md bg-red-600 text-white text-sm">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+      <!-- Auth Section -->
+      <section id="authSection" class="grid md:grid-cols-2 gap-6">
+        <div class="p-6 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+          <h2 class="text-xl font-semibold mb-4">Login</h2>
+          <form id="loginForm" class="space-y-3">
+            <input id="loginEmail" type="email" placeholder="Email" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" required />
+            <input id="loginPassword" type="password" placeholder="Password" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" required />
+            <button type="submit" class="w-full py-2 rounded-md bg-blue-600 text-white">Login</button>
+          </form>
+        </div>
+        <div class="p-6 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+          <h2 class="text-xl font-semibold mb-4">Signup</h2>
+          <form id="signupForm" class="space-y-3">
+            <input id="signupName" type="text" placeholder="Full Name" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" required />
+            <input id="signupEmail" type="email" placeholder="Email" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" required />
+            <input id="signupPassword" type="password" placeholder="Password" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" required />
+            <input id="signupFamily" type="text" placeholder="Family Name" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" required />
+            <select id="signupRole" aria-label="Role" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" required>
+              <option value="Family Admin">Family Admin</option>
+              <option value="Sub Admin">Sub Admin</option>
+              <option value="Member">Member</option>
+            </select>
+            <button type="submit" class="w-full py-2 rounded-md bg-green-600 text-white">Create Account</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Dashboard -->
+      <section id="dashboard" class="hidden space-y-6">
+        <div class="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-semibold">Dashboard</h2>
+              <p id="whoami" class="text-sm text-gray-500 dark:text-gray-400"></p>
+            </div>
+            <div id="payBox" class="hidden flex items-center gap-2">
+              <button id="payBtn" type="button" class="px-4 py-2 rounded-md bg-emerald-600 text-white">Pay ₹500</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Super Admin Panel -->
+        <div id="superAdminPanel" class="hidden p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+          <h3 class="font-semibold mb-3">All Family Admins & Payment Status</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <h4 class="font-medium mb-2">Family Admins</h4>
+              <ul id="adminsList" class="space-y-2 text-sm"></ul>
+            </div>
+            <div>
+              <h4 class="font-medium mb-2">Payments</h4>
+              <ul id="paymentsList" class="space-y-2 text-sm"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Family Admin Panel -->
+        <div id="familyAdminPanel" class="hidden p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+          <h3 class="font-semibold mb-3">Family Management</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <h4 class="font-medium mb-2">Add Member / Sub Admin</h4>
+              <form id="memberForm" class="space-y-2">
+                <input id="mName" placeholder="Name" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" />
+                <input id="mGender" placeholder="Gender" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" />
+                <input id="mOccupation" placeholder="Occupation" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" />
+                <input id="mLocation" placeholder="Location" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" />
+                <input id="mRelation" placeholder="Relation (e.g., Father, Mother, Son)" class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" />
+                <button type="submit" class="px-4 py-2 rounded-md bg-blue-600 text-white">Add Member</button>
+              </form>
+            </div>
+            <div>
+              <h4 class="font-medium mb-2">Members</h4>
+              <ul id="membersList" class="space-y-2 text-sm"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub Admin Panel (CRUD on members) -->
+        <div id="subAdminPanel" class="hidden p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+          <h3 class="font-semibold mb-3">Members (Manage)</h3>
+          <ul id="subMembersList" class="space-y-2 text-sm"></ul>
+        </div>
+
+        <!-- Member Panel (View-only) -->
+        <div id="memberPanel" class="hidden p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+          <h3 class="font-semibold mb-3">Your Family</h3>
+          <ul id="memberViewList" class="space-y-2 text-sm"></ul>
+        </div>
+
+        <!-- Family Tree -->
+        <div class="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+          <h3 class="font-semibold mb-3">Family Tree</h3>
+          <div id="tree" class="w-full h-96 rounded-md border border-gray-200 dark:border-gray-800"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Config
+    const { SUPABASE_URL, SUPABASE_ANON_KEY, UPI_QR_URL, EDGE_URL } = window.ENV || {};
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) alert('Missing SUPABASE_URL or SUPABASE_ANON_KEY in env.js');
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Theme toggle
+    const root = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    function applyTheme(mode) {
+      if (mode === 'dark') root.classList.add('dark'); else root.classList.remove('dark');
+      localStorage.setItem('theme', mode);
+    }
+    applyTheme(localStorage.getItem('theme') || 'light');
+    themeToggle.addEventListener('click', () => {
+      applyTheme(root.classList.contains('dark') ? 'light' : 'dark');
+    });
+
+    // UI refs
+    const authSection = document.getElementById('authSection');
+    const dashboard = document.getElementById('dashboard');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const whoami = document.getElementById('whoami');
+    const payBox = document.getElementById('payBox');
+    const payBtn = document.getElementById('payBtn');
+
+    const superAdminPanel = document.getElementById('superAdminPanel');
+    const familyAdminPanel = document.getElementById('familyAdminPanel');
+    const subAdminPanel = document.getElementById('subAdminPanel');
+    const memberPanel = document.getElementById('memberPanel');
+
+    const adminsList = document.getElementById('adminsList');
+    const paymentsList = document.getElementById('paymentsList');
+    const membersList = document.getElementById('membersList');
+    const subMembersList = document.getElementById('subMembersList');
+    const memberViewList = document.getElementById('memberViewList');
+
+    // Forms
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const memberForm = document.getElementById('memberForm');
+
+    // Session helpers
+    async function getProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      if (error) console.error(error);
+      if (!data) {
+        // fallback create from user metadata
+        const meta = user.user_metadata || {};
+        const prof = { id: user.id, email: user.email, name: meta.name || '', role: meta.role || 'Member', family_name: meta.family_name || null };
+        await supabase.from('profiles').insert(prof).then(()=>{}).catch(()=>{});
+        return prof;
+      }
+      return data;
+    }
+
+    function showAuth(show) {
+      authSection.classList.toggle('hidden', !show);
+      dashboard.classList.toggle('hidden', show);
+      logoutBtn.classList.toggle('hidden', show);
+    }
+
+    function setRolePanels(role) {
+      superAdminPanel.classList.add('hidden');
+      familyAdminPanel.classList.add('hidden');
+      subAdminPanel.classList.add('hidden');
+      memberPanel.classList.add('hidden');
+      payBox.classList.add('hidden');
+      if (role === 'Super Admin') superAdminPanel.classList.remove('hidden');
+      if (role === 'Family Admin') { familyAdminPanel.classList.remove('hidden'); payBox.classList.remove('hidden'); }
+      if (role === 'Sub Admin') subAdminPanel.classList.remove('hidden');
+      if (role === 'Member') memberPanel.classList.remove('hidden');
+    }
+
+    async function refreshData(profile) {
+      whoami.textContent = `${profile.name || profile.email} — ${profile.role} ${profile.family_name ? '— '+profile.family_name : ''}`;
+
+      // Fetch family by profile.family_name
+      let familyId = null;
+      if (profile.family_name) {
+        const { data: fam } = await supabase.from('families').select('*').eq('family_name', profile.family_name).maybeSingle();
+        familyId = fam?.id || null;
+      }
+
+      // Super Admin: list all Family Admins + payments
+      if (profile.role === 'Super Admin') {
+        const { data: admins } = await supabase.from('profiles').select('id,name,email,family_name,role').eq('role','Family Admin');
+        adminsList.innerHTML = (admins||[]).map(a=>`<li class="p-2 rounded border border-gray-200 dark:border-gray-800">${a.name || a.email} — ${a.family_name}</li>`).join('');
+        const { data: pays } = await supabase.from('payments').select('id,email,status,created_at');
+        paymentsList.innerHTML = (pays||[]).map(p=>`<li class="p-2 rounded border border-gray-200 dark:border-gray-800">${p.email} — ${p.status} — ${new Date(p.created_at).toLocaleString()}</li>`).join('');
+      }
+
+      // Family Admin & Sub Admin: manage members
+      if (['Family Admin','Sub Admin','Member'].includes(profile.role) && familyId) {
+        const { data: mems } = await supabase.from('members').select('*').eq('family_id', familyId).order('created_at');
+        const li = (m) => `<li class="flex items-center justify-between gap-2 p-2 rounded border border-gray-200 dark:border-gray-800">
+            <span>${m.name} — ${m.relation || ''} — ${m.gender || ''} — ${m.location || ''}</span>
+            ${profile.role !== 'Member' ? `<span class="flex gap-2">
+              <button data-id="${m.id}" class="edit px-2 py-1 text-xs rounded bg-amber-600 text-white">Edit</button>
+              <button data-id="${m.id}" class="del px-2 py-1 text-xs rounded bg-red-600 text-white">Delete</button>
+            </span>` : ''}
+          </li>`;
+        membersList.innerHTML = (mems||[]).map(li).join('');
+        subMembersList.innerHTML = (mems||[]).map(li).join('');
+        memberViewList.innerHTML = (mems||[]).map(m=>`<li class="p-2 rounded border border-gray-200 dark:border-gray-800">${m.name} — ${m.relation||''}</li>`).join('');
+
+        // Render a simple tree: root = family_name, children = members
+        renderTree(profile.family_name || 'Family', mems || []);
+
+        // Wire member actions
+        document.querySelectorAll('#membersList .edit, #subMembersList .edit').forEach(btn => btn.addEventListener('click', async (e)=>{
+          const id = e.currentTarget.getAttribute('data-id');
+          const name = prompt('New name?');
+          if (!name) return;
+          await supabase.from('members').update({ name }).eq('id', id);
+          await refreshData(profile);
+        }));
+        document.querySelectorAll('#membersList .del, #subMembersList .del').forEach(btn => btn.addEventListener('click', async (e)=>{
+          const id = e.currentTarget.getAttribute('data-id');
+          if (!confirm('Delete member?')) return;
+          await supabase.from('members').delete().eq('id', id);
+          await refreshData(profile);
+        }));
+      }
+    }
+
+    function renderTree(familyName, members) {
+      const container = document.getElementById('tree');
+      const nodes = new vis.DataSet([ { id: 'root', label: familyName, shape: 'box' }, ...members.map(m => ({ id: m.id, label: m.name + (m.relation? `\n(${m.relation})`:'')})) ]);
+      const edges = new vis.DataSet(members.map(m => ({ from: 'root', to: m.id })));
+      const network = new vis.Network(container, { nodes, edges }, { layout: { hierarchical: { enabled: true, direction: 'UD' } }, physics: false });
+      return network;
+    }
+
+    // Auth flows
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return alert(error.message);
+      const profile = await getProfile();
+      if (!profile) return alert('Profile missing');
+      showAuth(false);
+      setRolePanels(profile.role);
+      await refreshData(profile);
+    });
+
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      const family_name = document.getElementById('signupFamily').value.trim();
+      const role = document.getElementById('signupRole').value;
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name, role, family_name } }
+      });
+      if (error) return alert(error.message);
+      // Create profile row immediately if session exists
+      const user = data.user;
+      if (user) {
+        await supabase.from('profiles').upsert({ id: user.id, email, name, role, family_name });
+      }
+      alert('Signup successful. Please verify email (if required) and login.');
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      showAuth(true);
+    });
+
+    // Member add form
+    memberForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const profile = await getProfile();
+      if (!profile?.family_name) return alert('No family context');
+      const { data: fam } = await supabase.from('families').select('*').eq('family_name', profile.family_name).maybeSingle();
+      if (!fam) return alert('Family missing');
+      const payload = {
+        family_id: fam.id,
+        name: document.getElementById('mName').value.trim(),
+        gender: document.getElementById('mGender').value.trim(),
+        occupation: document.getElementById('mOccupation').value.trim(),
+        location: document.getElementById('mLocation').value.trim(),
+        relation: document.getElementById('mRelation').value.trim(),
+      };
+      const { error } = await supabase.from('members').insert(payload);
+      if (error) return alert(error.message);
+      (e.target).reset();
+      await refreshData(profile);
+    });
+
+    // Payment flow (Family Admin)
+    payBtn?.addEventListener('click', async () => {
+      const profile = await getProfile();
+      if (!profile || profile.role !== 'Family Admin') return alert('Only Family Admin can pay');
+      const { data, error } = await supabase.from('payments').insert({
+        family_admin_id: profile.id,
+        email: profile.email,
+        qr_url: UPI_QR_URL,
+        status: 'pending',
+      }).select('*').single();
+      if (error || !data) return alert(error?.message || 'Payment row failed');
+      try {
+        const res = await fetch(EDGE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paymentId: data.id })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        alert('QR code email sent successfully!');
+      } catch (e) {
+        alert('Edge function error: ' + e.message);
+      }
+      await refreshData(profile);
+    });
+
+    // Boot
+    (async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const profile = await getProfile();
+        showAuth(false);
+        setRolePanels(profile.role);
+        await refreshData(profile);
+      } else {
+        showAuth(true);
+      }
+      // Listen to auth changes
+      supabase.auth.onAuthStateChange(async (_evt, sess) => {
+        if (sess) {
+          const profile = await getProfile();
+          showAuth(false);
+          setRolePanels(profile.role);
+          await refreshData(profile);
+        } else {
+          showAuth(true);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
+
+
